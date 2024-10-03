@@ -1,0 +1,1291 @@
+---
+title: "Actividad 2 Ejercicio 3"
+author: "CARIS ANDREA CHIA AMAYA - WEIMAR CORTES"
+date: "2024-08-29"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+```
+
+```{r, echo=FALSE}
+library(pander)
+library(kableExtra)
+library(ggplot2)
+library(stats)
+library(cowplot)
+library(gridExtra)
+library(grid)
+```
+
+# EJERCICIO
+
+Teorema del Límite Central:
+
+El Teorema del Límite Central es uno de los más importantes en la inferencia estadística y habla sobre la convergencia de los estimadores como la proporción muestral a la distribución normal.
+Algunos autores afirman que esta aproximación es bastante buena a partir del umbral n\>30.
+
+A continuación se describen los siguientes pasos para su verificación:
+
+a.  Realice una simulación en la cual genere una población de n=1000 (Lote), donde el porcentaje de individuos (supongamos plantas) enfermas sea del 50%.
+
+b.  Genere una función que permita:
+
+    -   Obtener una muestra aleatoria de la población
+    -   Calcule el estimador de la proporción muestral pˆ para un tamaño de muestra dado n.
+
+c.  Repita el escenario anterior (b) n=500 veces y analice los resultados en cuanto al comportamiento de los 500 resultados del estimador pˆ.
+    ¿Qué tan simétricos o sesgados son los resultados obtenidos?
+    y ¿qué se puede observar en cuanto a la variabilidad?.
+    Realice en su informe un comentario sobre los resultados obtenidos.
+
+d.  Repita los puntos b y c para tamaños de muestra n=5, 10, 15, 20, 30, 50, 60, 100, 200, 500.
+    Compare los resultados obtenidos para los diferentes tamaños de muestra en cuanto a la normalidad.
+    Utilice pruebas de bondad y ajuste (shapiro wilks :shspiro.test()) y métodos gráficos (gráfico de normalidad: qqnorm()).
+    Comente en su informe los resultados obtenidos
+
+e.  Repita toda la simulación (puntos a – d), pero ahora para lotes con 10% de plantas enfermas y de nuevo para lotes con un 90% de plantas enfermas.
+    Concluya sobre los resultados del ejercicio.
+
+# ANÁLISIS
+
+## PUNTO A - B
+
+```{r, echo=FALSE}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+calcular_proporcion_muestral <- function(tamano_muestra) {
+  muestra <- sample(poblacion, size = tamano_muestra, replace = FALSE)
+  
+  proporcion_muestral <- mean(muestra)
+  
+  return(proporcion_muestral)
+}
+
+tamano_muestra <- 1000
+resultado <- calcular_proporcion_muestral(tamano_muestra)
+
+cat("La proporción muestral para una muestra", tamano_muestra, "es:", resultado, "\n")
+
+```
+Proporción Muestral <br>
+La proporción muestral \(\hat{p}\) de 0.493 está muy cerca de la proporción poblacional p de 0.5. Esto es consistente con lo que esperaríamos según el TLC, ya que para muestras grandes, la proporción muestral debería aproximarse a la proporción poblacional.
+
+Distribución Normal <br>
+Según el TLC, la distribución de las proporciones muestrales debería aproximarse a una distribución normal con media ( p ) y desviación estándar
+
+Desviación estándar:\[ \sqrt{\frac{p(1-p)}{n}} \]
+
+En este caso, la desviación estándar sería: 
+
+\[ \sigma_{\hat{p}} = \sqrt{\frac{0.5 \times (1 - 0.5)}{1000}} = \sqrt{\frac{0.25}{1000}} = \sqrt{0.00025} = 0.0158 \]
+
+Intervalo de Confianza <br>
+Un intervalo de confianza del 95% para la proporción muestral se puede calcular como:
+
+\[ \hat{p} \pm 1.96 \times \sigma_{\hat{p}} = 0.493 \pm 1.96 \times 0.0158 \]
+
+Esto da un intervalo de aproximadamente [0.462, 0.524], lo cual incluye la proporción poblacional de 0.5.
+
+## PUNTO C
+
+```{r, echo=FALSE}
+
+tamano_muestra <- 500
+n_simulaciones <- 500
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+mean_proporcion <- mean(resultados)
+sd_proporcion <- sd(resultados)
+
+cat("Media de las proporciones muestrales:", mean_proporcion, "\n")
+cat("Desviación estándar de las proporciones muestrales:", sd_proporcion, "\n")
+
+hist(resultados, main = "Distribución de Proporciones Muestrales",
+     xlab = "Proporción Muestral", col = "lightblue", border = "black",
+     breaks = 20)
+abline(v = prob_enfermo, col = "red", lwd = 2)
+legend("topright", legend = paste("Proporción Verdadera:", prob_enfermo), col = "red", lwd = 2)
+
+```
+<br>
+Distribución de las Proporciones Muestrales: <br>
+El histograma muestra una distribución de las proporciones muestrales que está centrada alrededor de la proporción verdadera de 0.5, como se indica por la línea roja vertical. La forma de la distribución sugiere una aproximación a la normalidad, que es lo que se espera según el Teorema del Límite Central, especialmente cuando se trabaja con un tamaño de muestra mayor.
+
+Media de las Proporciones Muestrales: 
+La media de las proporciones muestrales es 0.493776, que está muy cercana a la proporción verdadera de 0.5. Esto indica que, en promedio, las muestras están representando bien la población.
+
+Desviación Estándar de las Proporciones Muestrales: <br>
+La desviación estándar de 0.0165244 muestra la variabilidad de las proporciones muestrales alrededor de la media. Un valor más bajo indica que las proporciones muestrales están más concentradas cerca de la media.
+
+Conclusión
+La media de las proporciones muestrales es cercana a la proporción verdadera y la distribución tiene una forma simétrica, lo que sugiere normalidad. La pequeña desviación estándar refuerza la precisión de las muestras al estimar la proporción verdadera.
+
+## PUNTO D
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 5
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 5)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 5)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Normalidad de los Datos: <br>
+El p-valor es extremadamente bajo (3.334e-15), mucho menor que cualquier nivel de significancia común (como 0.05 o 0.01). Esto significa que hay evidencia muy fuerte en contra de la hipótesis nula de que los datos provienen de una distribución normal.
+Por lo tanto, podemos concluir que los datos no siguen una distribución normal.
+Teorema del Límite Central (TLC): <br>
+El TLC establece que, para muestras suficientemente grandes, la distribución de la media muestral se aproximará a una distribución normal, independientemente de la distribución original de los datos.
+Sin embargo, el TLC se aplica principalmente a la distribución de las medias muestrales y no necesariamente a la distribución de los datos individuales. En este caso, aunque los datos individuales no sean normales, si se toman muchas muestras y calculan sus medias, esas medias deberían aproximarse a una distribución normal si el tamaño de la muestra es suficientemente grande
+El hecho de que la prueba de Shapiro-Wilk indique una desviación significativa de la normalidad podría ser esperado, dado el tamaño pequeño de la muestra. En estudios del Teorema del Límite Central, se esperaría que con muestras más grandes (generalmente n > 30), la distribución de las medias muestrales se acerque a la normalidad, y la prueba de normalidad daría resultados más consistentes con este teorema.
+En resumen, con un tamaño de muestra de 5, la falta de normalidad observada es coherente con el hecho de que el TLC aún no tiene un efecto fuerte en esta situación específica.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 10
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 10)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 10)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Aunque ha incrementado el tamaño de la muestra a 𝑛=10, lo cual mejora la aproximación a la normalidad (como se observa en el gráfico Q-Q y en el histograma), el valor de p sigue siendo extremadamente bajo, indicando que los datos aún no siguen una distribución normal. Esto es consistente con el Teorema del Límite Central, que sugiere que la normalidad se alcanza con tamaños de muestra mayores. Con 𝑛=10, la aproximación es mejor que con 𝑛=5, pero aún insuficiente para que la distribución sea considerada normal según la prueba de Shapiro-Wilk.
+
+El incremento en el tamaño de la muestra ha mejorado la normalidad, pero todavía no es suficiente para alcanzar una distribución completamente normal, lo que refleja la naturaleza progresiva del efecto del Teorema del Límite Central a medida que el tamaño de la muestra aumenta.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 15
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 15)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 15)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Gráfico Q-Q: El gráfico Q-Q muestra una alineación más estrecha de los puntos a lo largo de la línea roja, lo que indica que la distribución de las proporciones muestrales se aproxima aún más a una distribución normal en comparación con las muestras más pequeñas.
+
+Histograma: El histograma sigue mostrando una distribución centrada alrededor de 0.5, con una forma más simétrica, lo que es característico de una distribución normal.
+
+Con un tamaño de muestra de 𝑛=15, se observa una mejora continua en la aproximación de la distribución muestral a una distribución normal. Sin embargo, el valor de p sigue siendo significativamente bajo, lo que indica que, aunque la distribución se aproxima más a la normalidad, todavía no se ajusta completamente a ella.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 20
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 20)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 20)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Gráfico Q-Q: El gráfico Q-Q muestra una alineación aún más estrecha de los puntos a lo largo de la línea roja, lo que indica que la distribución de las proporciones muestrales se aproxima mucho más a una distribución normal en comparación con los tamaños de muestra más pequeños. Aunque hay alguna desviación en los extremos, la mayor parte de los puntos sigue la línea con bastante precisión.
+
+Histograma: El histograma muestra una distribución de las proporciones muestrales que es bastante simétrica y centrada alrededor de 0.5, lo que nuevamente es un buen indicio de una distribución normal, que se hace más evidente con un tamaño de muestra mayor.
+
+Prueba de Shapiro-Wilk: <br>
+
+W = 0.98008: Este valor está muy cercano a 1, lo que indica una fuerte alineación con la normalidad.
+p-value = 2.411e-06: Aunque este valor de p sigue siendo bajo, es considerablemente más alto que en los casos anteriores, lo que sugiere una mejora continua en la aproximación de la distribución a la normalidad.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 30
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 30)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 30)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Prueba de Shapiro-Wilk: <br>
+
+W = 0.98581: Este valor está muy cercano a 1, lo que indica una fuerte alineación con la normalidad.
+p-value = 8.562e-05: Aunque el valor de p es más alto que en los casos anteriores, sigue siendo relativamente bajo, lo que técnicamente permitiría rechazar la hipótesis nula de normalidad, aunque con menos certeza.
+
+Con un tamaño de muestra de 𝑛=30, la distribución de las proporciones muestrales se aproxima mucho más a una distribución normal, como lo demuestran tanto el gráfico Q-Q como la prueba de Shapiro-Wilk. El valor de p, aunque todavía bajo, es más alto que en los análisis anteriores, lo que indica una mejora en la aproximación a la normalidad.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 50
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 50)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 50)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Prueba de Shapiro-Wilk: <br>
+W = 0.9894: Este valor es muy cercano a 1, lo que sugiere una fuerte normalidad en la distribución de los datos.
+p-value = 0.001123: Aunque este valor de p es mucho más alto que en los análisis anteriores, aún permite rechazar la hipótesis nula de normalidad en términos estrictos, pero la diferencia es mínima y puede no ser significativa en contextos prácticos.
+
+Con un tamaño de muestra de 𝑛=50, la distribución de las proporciones muestrales se aproxima de manera muy clara a una distribución normal, como lo evidencia la alineación casi perfecta en el gráfico Q-Q y el valor de 𝑊 en la prueba de Shapiro-Wilk. Aunque el valor de p aún es bajo, lo cual sugiere la posibilidad de rechazar la normalidad, en la práctica la distribución parece ser prácticamente normal.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 60
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 60)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 60)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Gráfico Q-Q: El gráfico Q-Q muestra una alineación casi perfecta de los puntos a lo largo de la línea roja, lo que indica que la distribución de las proporciones muestrales se ajusta muy bien a una distribución normal. Esta es la mejor alineación observada hasta ahora en sus gráficos.
+
+Histograma: El histograma muestra una distribución de las proporciones muestrales que es simétrica y centrada alrededor de 0.5, con una mayor concentración de valores cerca de la media. La distribución se ha vuelto más estrecha y alta, lo que indica una menor dispersión y una mayor precisión en las estimaciones de la proporción muestral.
+
+Con un tamaño de muestra de 𝑛=60, la distribución de las proporciones muestrales se ajusta de manera notablemente cercana a una distribución normal. La alineación en el gráfico Q-Q y el valor de 𝑊 de la prueba de Shapiro-Wilk apoyan fuertemente esta conclusión. Aunque el valor de p sugiere que todavía existe una ligera desviación de la normalidad, en la mayoría de los contextos prácticos esta distribución puede considerarse normal.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 100
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 100)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 100)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Gráfico Q-Q: El gráfico Q-Q continúa mostrando una excelente alineación de los puntos a lo largo de la línea roja, lo que indica que la distribución de las proporciones muestrales se ajusta muy bien a una distribución normal. La alineación es bastante precisa, lo que refuerza la idea de que la distribución es prácticamente normal.
+
+Histograma: El histograma muestra una distribución de las proporciones muestrales que, aunque sigue centrada alrededor de 0.5, parece tener una concentración muy alta en un rango estrecho cerca de la media. La distribución es extremadamente alta y estrecha, lo que indica una menor variabilidad en las proporciones muestrales.
+
+Prueba de Shapiro-Wilk: <br>
+
+W = 0.99288: Este valor es muy cercano a 1, lo que sugiere que la distribución de los datos es casi normal.
+p-value = 0.0179: Este valor de p, aunque mayor que en los casos anteriores, todavía es relativamente bajo, lo que sugiere que, desde un punto de vista técnico, podría rechazarse la hipótesis nula de normalidad. Sin embargo, esta baja significación puede no ser relevante en contextos prácticos, dado lo cercana que es la distribución a la normalidad.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 200
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 200)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 200)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Gráfico Q-Q: El gráfico Q-Q muestra una alineación casi perfecta de los puntos a lo largo de la línea roja, lo que indica que la distribución de las proporciones muestrales es muy cercana a una distribución normal. La alineación es excelente en prácticamente todo el rango de los datos.
+
+Histograma: El histograma muestra una distribución de las proporciones muestrales que está altamente concentrada alrededor de la proporción de 0.5. La distribución es muy estrecha y alta, reflejando una gran precisión en las estimaciones de la proporción muestral, con una variabilidad extremadamente baja.
+
+Prueba de Shapiro-Wilk: <br>
+
+W = 0.99502: Este valor está muy cercano a 1, lo que indica una normalidad casi perfecta en la distribución de los datos.
+p-value = 0.107: Este valor de p es considerablemente mayor que en los análisis anteriores y sugiere que no hay evidencia suficiente para rechazar la hipótesis nula de que los datos siguen una distribución normal. Esto significa que, desde un punto de vista estadístico, se puede considerar que la distribución es normal.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.5
+tamano_muestra <- 500
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 500)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 500)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Con un tamaño de muestra de 𝑛=500, la distribución de las proporciones muestrales se ajusta de manera excepcionalmente cercana a una distribución normal, como lo indican tanto el gráfico Q-Q como los resultados de la prueba de Shapiro-Wilk. El alto valor de p refuerza la conclusión de que la distribución es normal.
+<br>
+
+### INFORME
+
+SIMETRÍA Y SESGO <br>
+A través de las diferentes gráficas presentadas, se observa que a medida que el tamaño de la muestra aumenta, los resultados obtenidos tienden a ser cada vez más simétricos. En los primeros gráficos, correspondientes a tamaños de muestra más pequeños (por ejemplo, 𝑛=5,𝑛=10), se puede observar cierta asimetría y sesgo en las distribuciones muestrales, con desviaciones más marcadas en los gráficos Q-Q y distribuciones que no están perfectamente centradas alrededor de la media esperada.
+
+Sin embargo, conforme el tamaño de la muestra incrementa (especialmente a partir de 𝑛=30 y más), las distribuciones comienzan a mostrar una mayor simetría. Los gráficos Q-Q revelan que los datos se alinean cada vez mejor con la línea de referencia, indicando que la distribución se aproxima a la normalidad. Esto es especialmente evidente en los gráficos correspondientes a 𝑛=200 y 𝑛=500, donde las distribuciones son casi perfectamente simétricas, y el sesgo es prácticamente inexistente.
+
+VARIABILIDAD <br>
+En cuanto a la variabilidad, los primeros gráficos muestran una mayor dispersión en las proporciones muestrales, lo que se refleja en distribuciones más anchas y menos concentradas alrededor de la media. Esta alta variabilidad es natural en tamaños de muestra pequeños, donde la influencia de valores extremos es más pronunciada.
+
+A medida que el tamaño de la muestra aumenta, se observa una disminución significativa en la variabilidad. Esto se manifiesta en los histogramas, que se vuelven más estrechos y altos, indicando que las proporciones muestrales están más concentradas cerca de la media esperada. Esta tendencia es un reflejo directo del Teorema del Límite Central, que predice que con muestras grandes, la media de las distribuciones muestrales tiende a aproximarse a una distribución normal con menor variabilidad.
+
+CONCLUSIÓN <br>
+En resumen, los resultados obtenidos a través de las gráficas muestran que, con tamaños de muestra pequeños, las distribuciones muestrales presentan cierta asimetría y alta variabilidad. Sin embargo, a medida que el tamaño de la muestra aumenta, las distribuciones se vuelven cada vez más simétricas y con menor variabilidad, acercándose a una distribución normal. Estos hallazgos están alineados con el Teorema del Límite Central, que establece que con muestras suficientemente grandes, las medias o proporciones muestrales siguen una distribución normal, independientemente de la forma de la distribución original.
+
+Este análisis confirma que para obtener resultados más confiables y menos sesgados, es recomendable trabajar con muestras de mayor tamaño, lo que reduce la variabilidad y mejora la precisión de las estimaciones estadísticas.
+
+
+## PUNTO E
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 5
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 5)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 5)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 5
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 5)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 5)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Los resultados obtenidos con proporciones 𝑝=0.1 y 𝑝=0.9 muestran que, cuando se trabaja con un tamaño de muestra tan pequeño como 𝑛=5, las distribuciones de las proporciones muestrales están lejos de ser normales. En ambos casos, las distribuciones son altamente asimétricas y sesgadas hacia el extremo correspondiente de la proporción verdadera (izquierda para 𝑝=0.1 y derecha para 𝑝=0.9).
+
+El gráfico Q-Q y la prueba de Shapiro-Wilk en ambos escenarios confirman que la distribución de las proporciones muestrales no sigue una distribución normal. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 10
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 10)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 10)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 10
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 10)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 10)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Los resultados obtenidos para proporciones 𝑝=0.1 y 𝑝=0.9 con un tamaño de muestra de 𝑛=10 muestran que, aunque el tamaño de muestra es mayor que en análisis anteriores (𝑛=5), las distribuciones de las proporciones muestrales siguen siendo asimétricas y sesgadas, dependiendo del valor de la proporción verdadera. En el caso de 𝑝=0.1, hay un sesgo hacia la izquierda, mientras que en 𝑝=0.9, el sesgo es hacia la derecha.
+
+Los gráficos Q-Q y los resultados de la prueba de Shapiro-Wilk confirman que las distribuciones no son normales. El aumento en el tamaño de la muestra de 𝑛=5 a 𝑛=10 ha reducido un poco la variabilidad, pero no lo suficiente como para obtener una distribución normal.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 15
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 15)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 15)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 15
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 15)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 15)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+<br>
+Proporción 𝑝=0.1 <br>
+<br>
+Gráfico Q-Q: El gráfico Q-Q muestra una desviación notable de los puntos con respecto a la línea de referencia roja, lo que indica que las proporciones muestrales no siguen una distribución normal. Los puntos se distribuyen de manera desigual y están mayoritariamente por debajo de la línea, lo que sugiere un sesgo hacia valores más bajos.
+
+Histograma: El histograma revela que la mayoría de las proporciones muestrales están concentradas cerca de 0, lo que es coherente con una proporción verdadera baja. La distribución es asimétrica y sesgada hacia la izquierda, lo cual es típico cuando se trabaja con 𝑝=0.1.
+
+Prueba de Shapiro-Wilk: El valor de 𝑊=0.87489 es bajo, confirmando la desviación de la normalidad. El valor de p es extremadamente pequeño (menor que 2.2×10−16), lo que apoya el rechazo de la hipótesis nula de normalidad. 
+<br>
+Proporción 𝑝=0.9 <br>
+<br>
+Gráfico Q-Q: En este caso, el gráfico Q-Q también muestra una desviación significativa de los puntos respecto a la línea de referencia roja. Los puntos están mayoritariamente por encima de la línea, indicando un sesgo hacia valores más altos.
+
+Histograma: El histograma muestra que la mayoría de las proporciones muestrales están concentradas cerca de 0.9, con una asimetría notable y un sesgo hacia la derecha, lo que es esperado para una proporción verdadera alta.
+
+Prueba de Shapiro-Wilk: El valor de 𝑊=0.87489, al igual que en el caso de 𝑝=0.1, sugiere una desviación significativa de la normalidad. El valor de p nuevamente es extremadamente bajo, respaldando el rechazo de la hipótesis nula de normalidad.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 20
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 20)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 20)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 20
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 20)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 20)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Los resultados para ambas proporciones 𝑝=0.1 y 𝑝=0.9 con un tamaño de muestra de 𝑛=20 muestran una mejora en la simetría y una ligera reducción del sesgo en comparación con tamaños de muestra menores, pero las distribuciones de las proporciones muestrales aún no son normales. El sesgo sigue presente, con 𝑝=0.1 mostrando un sesgo hacia la izquierda y 𝑝=0.9 un sesgo hacia la derecha.
+
+El gráfico Q-Q y la prueba de Shapiro-Wilk confirman que las distribuciones no son normales, a pesar de la mejora en la alineación de los puntos en el gráfico Q-Q y el aumento en el valor de 𝑊. Esto sugiere que, aunque el aumento en el tamaño de la muestra a 𝑛=20 reduce la variabilidad y mejora la aproximación a la normalidad, es necesario un tamaño de muestra aún mayor para obtener una distribución muestral que se aproxime más a una distribución normal, especialmente cuando se trabajan con proporciones extremas.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 30
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 30)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 30)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 30
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 30)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 30)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+<br>
+Proporción 𝑝=0.1 <br>
+<br>
+Gráfico Q-Q: El gráfico Q-Q muestra una mejor alineación de los puntos respecto a la línea de referencia roja en comparación con los casos anteriores con tamaños de muestra menores. Sin embargo, todavía hay desviaciones visibles, especialmente en los extremos, lo que indica que las proporciones muestrales aún no siguen una distribución normal.
+
+Histograma: El histograma muestra que la mayoría de las proporciones muestrales están concentradas cerca de 0.1, pero con algo de dispersión hacia valores mayores. La distribución es aún asimétrica, pero menos sesgada que con tamaños de muestra menores.
+
+Prueba de Shapiro-Wilk: El valor de 𝑊=0.94509 es más alto que en los casos anteriores, lo que sugiere una mejor aproximación a la normalidad, aunque aún insuficiente. El valor de p es pequeño (1.192e-12), lo que indica que aún se rechaza la hipótesis nula de normalidad.
+<br>
+Proporción 𝑝=0.9 <br>
+<br>
+Gráfico Q-Q: En este caso, el gráfico Q-Q muestra que los puntos están alineados de manera más cercana a la línea de referencia roja, aunque todavía hay ligeras desviaciones en los extremos. Esto sugiere que la distribución de las proporciones muestrales se aproxima más a una distribución normal, pero aún no es perfecta.
+
+Histograma: El histograma muestra una concentración de las proporciones muestrales cerca de 0.9, con menos dispersión que en el caso de 𝑝=0.1. La distribución es menos sesgada y más centrada alrededor de la media esperada.
+
+Prueba de Shapiro-Wilk: El valor de 𝑊=0.94509 indica una mejor aproximación a la normalidad que en los casos anteriores, pero sigue siendo insuficiente para considerar la distribución como normal. El valor de p, aunque pequeño (1.192e-12), muestra una menor evidencia en contra de la normalidad en comparación con proporciones más extremas y tamaños de muestra menores.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 50
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 50)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 50)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 50
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 50)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 50)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Los resultados para ambas proporciones 𝑝=0.1 y 𝑝=0.9 con un tamaño de muestra de 𝑛=50 muestran una mejora significativa en la simetría y una reducción del sesgo en comparación con tamaños de muestra menores. Las distribuciones de las proporciones muestrales están mucho más cerca de ser normales, aunque aún no son perfectas. Los gráficos Q-Q muestran una alineación bastante buena con la línea de referencia, y los histogramas indican una distribución más concentrada y simétrica.
+
+El valor elevado de 𝑊 en la prueba de Shapiro-Wilk sugiere una fuerte aproximación a la normalidad, pero el valor de p aún indica que la hipótesis nula de normalidad puede ser rechazada, aunque con menos certeza que en tamaños de muestra menores. Esto sugiere que, aunque 𝑛=50 es un tamaño de muestra suficientemente grande para muchas aplicaciones, aún podría haber ligeras desviaciones de la normalidad, especialmente en los extremos de la distribución. Sin embargo, estas desviaciones son pequeñas y probablemente insignificantes en la mayoría de los contextos prácticos.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 60
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 60)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 60)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 60
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 60)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 60)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Con un tamaño de muestra de 𝑛=60, las distribuciones de las proporciones muestrales para 𝑝=0.1 y 𝑝=0.9 muestran una clara mejora en la simetría y una reducción significativa del sesgo en comparación con tamaños de muestra más pequeños. Los gráficos Q-Q indican una alineación cercana con la normalidad, y los histogramas muestran distribuciones más estrechas y menos dispersas, con una asimetría mínima.
+
+El valor de 𝑊 en la prueba de Shapiro-Wilk es alto, lo que sugiere una fuerte aproximación a la normalidad. Aunque el valor de p aún indica que podría rechazarse la hipótesis nula de normalidad, la magnitud del p-valor es menor que en tamaños de muestra menores, lo que sugiere que cualquier desviación de la normalidad es mínima y probablemente no significativa en la práctica.
+
+Con 𝑛=60, las distribuciones muestrales para estas proporciones se aproximan bastante a una distribución normal, con solo ligeras desviaciones en los extremos. Estas distribuciones serían consideradas normales para la mayoría de las aplicaciones prácticas.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 100
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 100)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 100)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 100
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 100)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 100)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+<br>
+Proporción 𝑝=0.1 <br>
+<br>
+Gráfico Q-Q: El gráfico Q-Q muestra una alineación muy cercana de los puntos a la línea de referencia roja, lo que indica una excelente aproximación a la normalidad. Aunque aún hay algunas desviaciones menores en los extremos, la mayor parte de los puntos sigue la línea de referencia, sugiriendo que la distribución es casi normal.
+
+Histograma: El histograma muestra una distribución de proporciones muestrales altamente concentrada cerca de 0.1. La distribución es bastante alta y estrecha, con una variabilidad muy reducida. La asimetría es mínima, indicando una distribución casi simétrica.
+
+Prueba de Shapiro-Wilk: El valor de 𝑊=0.97797 es muy alto, lo que indica una fuerte aproximación a la normalidad. Sin embargo, el valor de p (7.369e-07) aún sugiere que podría haber ligeras desviaciones de la normalidad, aunque estas son mínimas y probablemente no significativas en la práctica.
+<br>
+Proporción 𝑝=0.9 <br>
+<br>
+Gráfico Q-Q: El gráfico Q-Q para 𝑝=0.9 muestra una alineación muy cercana de los puntos a la línea de referencia roja, similar al caso de 𝑝=0.1. Esto sugiere que la distribución de las proporciones muestrales es casi normal, con solo pequeñas desviaciones en los extremos.
+
+Histograma: El histograma revela una concentración de las proporciones muestrales cerca de 0.9, con una distribución alta, estrecha y menos dispersa. La asimetría es mínima, lo que indica una distribución casi perfectamente simétrica.
+
+Prueba de Shapiro-Wilk: El valor de 𝑊=0.97797 es elevado, lo que sugiere una buena aproximación a la normalidad. El valor de p (7.369e-07) indica que, aunque existen pequeñas desviaciones de la normalidad, estas son menores y probablemente insignificantes en la mayoría de los contextos prácticos.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 200
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 200)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 200)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 200
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 200)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 200)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Con un tamaño de muestra de 𝑛=200, las distribuciones de las proporciones muestrales para 𝑝=0.1 y 𝑝=0.9 se aproximan muy de cerca a una distribución normal. Los gráficos Q-Q muestran una alineación casi perfecta con la línea de referencia, y los histogramas indican distribuciones altamente concentradas, simétricas y con muy poca dispersión.
+
+El valor elevado de 𝑊 en la prueba de Shapiro-Wilk confirma la casi normalidad de las distribuciones. Aunque el valor de p aún sugiere la posibilidad de ligeras desviaciones, estas son mínimas y probablemente no afectan de manera significativa los análisis o las conclusiones estadísticas. En resumen, con 𝑛=200, las distribuciones muestrales son prácticamente normales, lo que permite realizar inferencias estadísticas con un altísimo grado de confianza en la normalidad de los datos.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+n_poblacion <- 1000
+prob_enfermo <- 0.1
+tamano_muestra <- 500
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 500)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 500)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+
+n_poblacion <- 1000
+prob_enfermo <- 0.9
+tamano_muestra <- 500
+n_simulaciones <- 500
+
+set.seed(123)
+
+poblacion <- rbinom(n_poblacion, size = 1, prob = prob_enfermo)
+
+resultados <- sapply(1:n_simulaciones, function(x) calcular_proporcion_muestral(tamano_muestra))
+
+shapiro_test <- shapiro.test(resultados)
+cat("Resultado de la Prueba de Shapiro-Wilk:\n")
+print(shapiro_test)
+
+qqplot <- ggplot(data = NULL, aes(sample = resultados)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  ggtitle("Gráfico Q-Q de Proporciones Muestrales (n = 500)") +
+  theme(plot.title = element_text(size = 9))
+
+histograma <- ggplot(data = NULL, aes(x = resultados)) +
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = prob_enfermo, color = "red", linetype = "dashed", size = 1) +
+  ggtitle("Distribución de Proporciones Muestrales (n = 500)") +
+  theme(plot.title = element_text(size = 9)) +
+  xlab("Proporción Muestral")
+
+grid.arrange(qqplot, histograma, ncol = 2)
+```
+Con un tamaño de muestra de 𝑛=500, las distribuciones de las proporciones muestrales para 𝑝=0.1 y 𝑝=0.9 muestran una aproximación muy fuerte a la normalidad. Los gráficos Q-Q indican una alineación casi perfecta con la línea de referencia, y los histogramas muestran distribuciones altamente concentradas, simétricas y con muy poca dispersión.
+
+El valor elevado de 𝑊 en la prueba de Shapiro-Wilk confirma la normalidad de las distribuciones. El valor de p, que ahora es considerablemente mayor en comparación con tamaños de muestra más pequeños, sugiere que cualquier desviación de la normalidad es insignificante y no debe afectar los resultados o conclusiones estadísticas. En resumen, con 𝑛=500, las distribuciones muestrales se pueden considerar normales para todos los efectos prácticos, lo que permite realizar inferencias estadísticas con un altísimo grado de confianza en la normalidad de los datos.
+
+### INFORME
+
+Introducción <br>
+En este informe se analiza la normalidad de las distribuciones de proporciones muestrales para dos proporciones diferentes, 𝑝=0.1 y 𝑝=0.9, utilizando diversos tamaños de muestra que varían desde 𝑛=5 hasta 
+𝑛=500. Para cada tamaño de muestra, se realizaron pruebas de normalidad utilizando la prueba de Shapiro-Wilk, gráficos Q-Q y histogramas. El objetivo de este análisis es evaluar cómo el tamaño de la muestra afecta la normalidad de las proporciones muestrales, especialmente en escenarios donde las proporciones son extremas.
+
+Resultados <br>
+Tamaño de Muestra 𝑛=5 <br>
+𝑝=0.1:Los resultados muestran una desviación significativa de la normalidad. El gráfico Q-Q muestra puntos alejados de la línea de referencia, y el histograma revela una distribución altamente asimétrica, con una gran concentración cerca de 0.1 y una fuerte cola hacia la derecha. El valor de 𝑊 en la prueba de Shapiro-Wilk es bajo, indicando una fuerte desviación de la normalidad.
+𝑝=0.9: Similar al caso de 𝑝=0.1, se observa una desviación significativa de la normalidad. La mayoría de las proporciones muestrales están concentradas cerca de 0.9, pero con una fuerte asimetría y cola hacia la izquierda. El valor de 𝑊 es bajo, confirmando la no normalidad de la distribución.
+<br>
+Tamaño de Muestra 𝑛=10 <br>
+𝑝=0.1: Aunque la alineación en el gráfico Q-Q mejora ligeramente, sigue habiendo una desviación notable de la normalidad. El histograma muestra una reducción en la dispersión, pero la distribución sigue siendo asimétrica y sesgada.
+𝑝=0.9: La mejora en la simetría y la alineación en el gráfico Q-Q es evidente, pero la distribución aún no es normal. La concentración alrededor de 0.9 es más alta, y la asimetría se ha reducido en comparación con 𝑛=5.
+Tamaño de Muestra 𝑛=20 <br>
+𝑝=0.1: Con 𝑛=20, la distribución muestra una mejor aproximación a la normalidad. El gráfico Q-Q tiene una alineación más cercana a la línea de referencia, y la asimetría en el histograma se ha reducido. Sin embargo, el valor de 𝑊 sigue indicando una desviación significativa.
+𝑝=0.9: La alineación en el gráfico Q-Q mejora notablemente, y la distribución es más simétrica y concentrada alrededor de 0.9. El valor de 𝑊 es más alto, lo que sugiere una mejor aproximación a la normalidad.
+Tamaño de Muestra 𝑛=30 <br>
+𝑝=0.1: El gráfico Q-Q muestra una alineación más cercana a la normalidad, y la distribución es menos asimétrica y más concentrada. Aunque la prueba de Shapiro-Wilk aún muestra una desviación de la normalidad, la mejora es clara.
+𝑝=0.9: La distribución es casi normal, con solo ligeras desviaciones en los extremos. La simetría y concentración alrededor de 0.9 son notables, y el valor de 𝑊 indica una fuerte aproximación a la normalidad.
+Tamaño de Muestra 𝑛=50 <br>
+𝑝=0.1: La distribución se aproxima fuertemente a la normalidad, con un gráfico Q-Q que muestra una alineación muy cercana a la línea de referencia. El histograma es más alto y estrecho, con menos asimetría.
+𝑝=0.9: La normalidad de la distribución es casi perfecta, con un valor de 𝑊 muy alto y un p-valor que sugiere que cualquier desviación de la normalidad es mínima.
+Tamaño de Muestra 𝑛=60 <br>
+𝑝=0.1: La distribución es casi normal, con un gráfico Q-Q que muestra una alineación muy precisa. El histograma indica una alta concentración cerca de 0.1 y una dispersión mínima.
+𝑝=0.9: Similar a 𝑝=0.1, la distribución es altamente normal, con una fuerte simetría y una alineación casi perfecta en el gráfico Q-Q.
+Tamaño de Muestra 𝑛=100 <br>
+𝑝=0.1: Con 𝑛=100, la distribución se puede considerar prácticamente normal. El gráfico Q-Q muestra una alineación casi perfecta, y el histograma es muy estrecho y alto.
+𝑝=0.9: La normalidad es evidente, con solo pequeñas desviaciones en los extremos. El valor de 𝑊 es muy alto, confirmando la normalidad de la distribución.
+Tamaño de Muestra 𝑛=200 <br>
+𝑝=0.1: La distribución es esencialmente normal. El gráfico Q-Q muestra una alineación perfecta, y el histograma es extremadamente estrecho y alto, con mínima dispersión.
+𝑝=0.9: Al igual que en 𝑝=0.1, la distribución es prácticamente normal. Cualquier desviación de la normalidad es insignificante, permitiendo suponer la normalidad con alta confianza.
+Tamaño de Muestra 𝑛=500 <br>
+𝑝=0.1: La distribución es completamente normal, con una alineación perfecta en el gráfico Q-Q y un histograma que muestra una alta concentración cerca de 0.1.
+𝑝=0.9: Similar a 𝑝=0.1, la normalidad es casi perfecta, con valores de 𝑊 y p-valor que confirman la distribución normal.
+<br>
+Conclusiones <br>
+A medida que el tamaño de la muestra aumenta, las distribuciones de las proporciones muestrales para 𝑝=0.1 y 
+𝑝=0.9 se aproximan cada vez más a la normalidad. Para tamaños de muestra pequeños, las distribuciones muestran asimetría y sesgo, con valores de 𝑊 bajos y p-valores que indican desviaciones significativas de la normalidad. Sin embargo, al aumentar el tamaño de la muestra, la alineación en los gráficos Q-Q mejora notablemente, los histogramas se vuelven más altos y estrechos, y las distribuciones se acercan a una forma simétrica y concentrada.
+
+Para 𝑛=100 y mayores, las distribuciones son prácticamente normales, con valores de 𝑊 elevados y p-valores que sugieren que cualquier desviación de la normalidad es mínima e insignificante para propósitos prácticos.
+
+Este análisis confirma que el Teorema del Límite Central se cumple: a medida que el tamaño de la muestra aumenta, las distribuciones muestrales tienden a la normalidad, incluso para proporciones extremas como 
+𝑝=0.1 y 𝑝=0.9. Con tamaños de muestra de 𝑛=200 o mayores, las distribuciones se pueden considerar normales con alta confianza, lo que permite realizar inferencias estadísticas precisas y fiables.
+
+# CONCLUSIONES
+<br>
+Impacto del Tamaño de la Muestra en la Estimación de Proporciones:
+<br>
+Proporciones Extremas (𝑝=0.1 y 𝑝=0.9): Las proporciones extremas tienden a mostrar una mayor variabilidad y sesgo en tamaños de muestra pequeños. Las distribuciones muestrales son asimétricas y se desvían de la normalidad. Sin embargo, a medida que el tamaño de la muestra aumenta, estas distribuciones se vuelven más normales, permitiendo estimaciones más precisas y confiables.
+Proporción Intermedia (𝑝=0.5): La proporción intermedia de 𝑝=0.5 tiende a ser más simétrica desde tamaños de muestra más pequeños, pero aún así requiere tamaños de muestra medianos a grandes para lograr una normalidad cercana a la perfección.
+<br>
+Recomendaciones para Estudios en Plantas:
+<br>
+Tamaños de muestra grandes son esenciales: Para obtener estimaciones confiables de la proporción de plantas enfermas, especialmente cuando se trata de proporciones extremas, es crucial utilizar tamaños de muestra grandes. A partir de 𝑛=100 y superiores, las distribuciones muestrales tienden a la normalidad, lo que permite realizar inferencias estadísticas con alta precisión.
+Proporciones intermedias son más estables: En estudios donde la proporción de plantas enfermas es cercana al 50%, las distribuciones muestrales tienden a ser más estables y menos susceptibles a sesgos, incluso con tamaños de muestra relativamente pequeños.
+<br>
+Aplicabilidad de los Resultados:
+<br>
+Estudios epidemiológicos: Este análisis es particularmente relevante en estudios epidemiológicos de plantas, donde es necesario estimar la prevalencia de enfermedades. Utilizar tamaños de muestra adecuados garantiza que las conclusiones sobre la salud de la población de plantas sean precisas y basadas en datos distribuidos normalmente, lo que a su vez facilita la toma de decisiones informadas sobre manejo y control de enfermedades.
+En resumen, el análisis confirma que el tamaño de la muestra juega un papel crucial en la precisión y confiabilidad de las estimaciones de proporciones muestrales. Para proporciones extremas, es necesario utilizar tamaños de muestra grandes para garantizar la normalidad de las distribuciones muestrales y obtener resultados precisos. Las proporciones intermedias, como 𝑝=0.5, tienden a ser más robustas frente a la variabilidad, pero aún se benefician de tamaños de muestra adecuados para asegurar la normalidad y la precisión de las inferencias estadísticas.
+<br>
+<br>

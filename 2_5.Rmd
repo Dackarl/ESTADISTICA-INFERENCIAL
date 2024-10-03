@@ -1,0 +1,264 @@
+---
+title: "Actividad 2 Ejercicio 5"
+author: "CARIS ANDREA CHIA AMAYA - WEIMAR CORTES"
+date: "2024-09-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+```
+
+```{r, echo=FALSE}
+library(pwr)
+library(knitr)
+library(ggplot2)
+```
+
+RELACIONES ENTRE LA POTENCIA, EL TAMAÑO DE LOS EFECTOS Y EL TAMAÑO DE LA MUESTRA
+
+# CASO 1
+
+Para cada tamaño fijo de los efectos d, se modela la relación entre el tamaño muestral y la potencia (manteniendo constante el nivel de significancia α=0.05). En las figuras se visualizan los resultados para tamaño de efecto muy pequeño (d=0.1), pequeño (d=0.2), mediano (d=0.5) y grande (d=0.8). Repite el análisis usando 5 valores distintos del nivel de significancia. ¿Cambian los resultados? ¿Qué ocurre cuando el tamaño de muestra de los grupos que se comparan es de 20, 60, 100 y 140? Analiza y compara los resultados.
+
+## ANÁLISIS
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+effect_sizes <- c(0.1, 0.2, 0.5, 0.8)
+
+n_values <- seq(10, 200, by = 10)
+
+combined_results <- data.frame()
+
+for (d in effect_sizes) {
+  power_values <- sapply(n_values, function(n){
+    pwr.t.test(n = n, d = d, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+  })
+  
+  df <- data.frame(
+    Tamaño_Muestral = n_values,
+    Potencia = power_values,
+    Tamaño_Efecto = paste("d =", d)
+  ) 
+  combined_results <- rbind(combined_results, df)
+}
+
+ggplot(combined_results, aes(x = Tamaño_Muestral, y = Potencia, color = Tamaño_Efecto, linetype = Tamaño_Efecto)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash")) +
+  labs(title = "Potencia de la Prueba T para Diferentes Tamaños de Efecto (n = 200)",
+       x = "Tamaño Muestral",
+       y = "Potencia",
+       color = "Tamaño Efecto",
+       linetype = "Tamaño Efecto") +
+  geom_hline(yintercept = 0.8, color = "black", linetype = "dashed") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 10)
+  )
+```
+
+
+Relación entre Tamaño Muestral y Potencia:<br>
+
+A medida que el tamaño muestral aumenta, la potencia de la prueba también aumenta para todos los tamaños de efecto. Esto significa que con muestras más grandes, es más probable detectar un efecto si realmente existe.<br>
+
+Impacto del Tamaño del Efecto:<br>
+
+Para un tamaño de muestra dado, los efectos más grandes (d=0.8) son más fáciles de detectar (mayor potencia) en comparación con los efectos más pequeños (d=0.1). Esto se refleja en las líneas de la gráfica, donde la línea para d=0.8 alcanza una potencia alta más rápidamente que las líneas para d=0.1, d=0.2 y d=0.5.<br>
+
+Tamaño de Muestra Necesario:<br>
+
+Para alcanzar una potencia deseada (por ejemplo, 0.8), se necesita un tamaño de muestra mayor para detectar efectos más pequeños. Por ejemplo, para un efecto muy pequeño (d=0.1), se requiere un tamaño de muestra mucho mayor que para un efecto grande (d=0.8).<br>
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+effect_sizes <- c(0.1, 0.2, 0.5, 0.8)
+
+n_values <- seq(10, 20, by = 10)
+
+combined_results <- data.frame()
+
+for (d in effect_sizes) {
+  power_values <- sapply(n_values, function(n){
+    pwr.t.test(n = n, d = d, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+  })
+  
+  df <- data.frame(
+    Tamaño_Muestral = n_values,
+    Potencia = power_values,
+    Tamaño_Efecto = paste("d =", d)
+  ) 
+  combined_results <- rbind(combined_results, df)
+}
+
+ggplot(combined_results, aes(x = Tamaño_Muestral, y = Potencia, color = Tamaño_Efecto, linetype = Tamaño_Efecto)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash")) +
+  labs(title = "Potencia de la Prueba T para Diferentes Tamaños de Efecto (n = 20)",
+       x = "Tamaño Muestral",
+       y = "Potencia",
+       color = "Tamaño Efecto",
+       linetype = "Tamaño Efecto") +
+  geom_hline(yintercept = 0.8, color = "black", linetype = "dashed") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 10)
+  )
+```
+Relación entre Tamaño del Efecto y Potencia: <br>
+Efecto muy pequeño (d=0.1): La potencia es muy baja, incluso con un tamaño muestral de 20, lo que indica que es difícil detectar un efecto tan pequeño con esta muestra.
+Efecto pequeño (d=0.2): La potencia sigue siendo baja, aunque un poco mejor que para d=0.1.
+Efecto mediano (d=0.5): La potencia es considerablemente mayor, lo que sugiere que es más probable detectar un efecto de este tamaño con una muestra de 20.
+Efecto grande (d=0.8): La potencia es alta, lo que indica que es muy probable detectar un efecto grande con el tamaño muestral dado.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+effect_sizes <- c(0.1, 0.2, 0.5, 0.8)
+
+n_values <- seq(10, 60, by = 10)
+
+combined_results <- data.frame()
+
+for (d in effect_sizes) {
+  power_values <- sapply(n_values, function(n){
+    pwr.t.test(n = n, d = d, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+  })
+  
+  df <- data.frame(
+    Tamaño_Muestral = n_values,
+    Potencia = power_values,
+    Tamaño_Efecto = paste("d =", d)
+  ) 
+  combined_results <- rbind(combined_results, df)
+}
+
+ggplot(combined_results, aes(x = Tamaño_Muestral, y = Potencia, color = Tamaño_Efecto, linetype = Tamaño_Efecto)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash")) +
+  labs(title = "Potencia de la Prueba T para Diferentes Tamaños de Efecto (n = 60)",
+       x = "Tamaño Muestral",
+       y = "Potencia",
+       color = "Tamaño Efecto",
+       linetype = "Tamaño Efecto") +
+  geom_hline(yintercept = 0.8, color = "black", linetype = "dashed") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 10)
+  )
+```
+Relación entre Tamaño del Efecto y Potencia: <br>
+Efecto muy pequeño (d=0.1): La potencia es baja, pero mejora en comparación con tamaños muestrales más pequeños. Sin embargo, sigue siendo difícil detectar un efecto tan pequeño.
+Efecto pequeño (d=0.2): La potencia es mayor que para d=0.1, pero aún no es óptima.
+Efecto mediano (d=0.5): La potencia es considerablemente alta, lo que sugiere que es probable detectar un efecto de este tamaño con una muestra de 60.
+Efecto grande (d=0.8): La potencia es muy alta, lo que indica que es muy probable detectar un efecto grande con el tamaño muestral dado.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+effect_sizes <- c(0.1, 0.2, 0.5, 0.8)
+
+n_values <- seq(10, 100, by = 10)
+
+combined_results <- data.frame()
+
+for (d in effect_sizes) {
+  power_values <- sapply(n_values, function(n){
+    pwr.t.test(n = n, d = d, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+  })
+  
+  df <- data.frame(
+    Tamaño_Muestral = n_values,
+    Potencia = power_values,
+    Tamaño_Efecto = paste("d =", d)
+  ) 
+  combined_results <- rbind(combined_results, df)
+}
+
+ggplot(combined_results, aes(x = Tamaño_Muestral, y = Potencia, color = Tamaño_Efecto, linetype = Tamaño_Efecto)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash")) +
+  labs(title = "Potencia de la Prueba T para Diferentes Tamaños de Efecto (n = 100)",
+       x = "Tamaño Muestral",
+       y = "Potencia",
+       color = "Tamaño Efecto",
+       linetype = "Tamaño Efecto") +
+  geom_hline(yintercept = 0.8, color = "black", linetype = "dashed") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 10)
+  )
+```
+Relación entre Tamaño del Efecto y Potencia: <br>
+Efecto muy pequeño (d=0.1): La potencia sigue siendo baja, aunque mejora en comparación con tamaños muestrales más pequeños. Detectar un efecto tan pequeño sigue siendo difícil.
+Efecto pequeño (d=0.2): La potencia es mayor que para d=0.1, pero aún no es óptima.
+Efecto mediano (d=0.5): La potencia es considerablemente alta, lo que sugiere que es probable detectar un efecto de este tamaño con una muestra de 100.
+Efecto grande (d=0.8): La potencia es muy alta, lo que indica que es muy probable detectar un efecto grande con el tamaño muestral dado.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+effect_sizes <- c(0.1, 0.2, 0.5, 0.8)
+
+n_values <- seq(10, 140, by = 10)
+
+combined_results <- data.frame()
+
+for (d in effect_sizes) {
+  power_values <- sapply(n_values, function(n){
+    pwr.t.test(n = n, d = d, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+  })
+  
+  df <- data.frame(
+    Tamaño_Muestral = n_values,
+    Potencia = power_values,
+    Tamaño_Efecto = paste("d =", d)
+  ) 
+  combined_results <- rbind(combined_results, df)
+}
+
+ggplot(combined_results, aes(x = Tamaño_Muestral, y = Potencia, color = Tamaño_Efecto, linetype = Tamaño_Efecto)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728")) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash")) +
+  labs(title = "Potencia de la Prueba T para Diferentes Tamaños de Efecto (n = 140)",
+       x = "Tamaño Muestral",
+       y = "Potencia",
+       color = "Tamaño Efecto",
+       linetype = "Tamaño Efecto") +
+  geom_hline(yintercept = 0.8, color = "black", linetype = "dashed") +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 10)
+  )
+```
+Relación entre Tamaño del Efecto y Potencia: <br>
+Efecto pequeño (d=0.2): La potencia es moderada, pero aún no óptima. Detectar un efecto pequeño sigue siendo un desafío, aunque mejora con el aumento del tamaño muestral.
+Efecto mediano (d=0.5): La potencia es considerablemente alta, lo que sugiere que es probable detectar un efecto de este tamaño con una muestra de 140.
+Efecto grande (d=0.8): La potencia es muy alta, lo que indica que es muy probable detectar un efecto grande con el tamaño muestral dado.
+
+## CONCLUSIÓN
+
+Aumento de la Potencia con el Tamaño Muestral:  <br>
+En todas las gráficas, se observa que la potencia de la prueba T aumenta a medida que el tamaño muestral incrementa. Esto significa que con muestras más grandes, es más probable detectar un efecto si realmente existe.  <br>
+Impacto del Tamaño del Efecto:  <br>
+Para un tamaño de muestra dado, los efectos más grandes (por ejemplo, d=0.8) son más fáciles de detectar (mayor potencia) en comparación con los efectos más pequeños (por ejemplo, d=0.1). Esto se refleja en las líneas de las gráficas, donde las líneas para tamaños de efecto más grandes alcanzan una potencia alta más rápidamente que las líneas para tamaños de efecto más pequeños.  <br>
+Tamaño de Muestra Necesario: <br>
+Para alcanzar una potencia deseada (por ejemplo, 0.8), se necesita un tamaño de muestra mayor para detectar efectos más pequeños. Por ejemplo, para un efecto muy pequeño (d=0.1), se requiere un tamaño de muestra mucho mayor que para un efecto grande (d=0.8).  <br>
+Conclusión General:  <br>
+La capacidad de detectar un efecto (potencia) depende tanto del tamaño del efecto como del tamaño muestral. Detectar efectos pequeños requiere muestras más grandes, mientras que los efectos grandes pueden ser detectados con muestras más pequeñas. A medida que el tamaño muestral aumenta, la potencia de la prueba también aumenta, mejorando la probabilidad de detectar efectos de cualquier tamaño.  <br>

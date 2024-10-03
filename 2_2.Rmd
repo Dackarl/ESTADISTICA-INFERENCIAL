@@ -1,0 +1,128 @@
+---
+title: "Actividad 2 Ejercicio 2"
+author: "CARIS ANDREA CHIA AMAYA - WEIMAR CORTES"
+date: "2024-08-27"
+output:
+  html_document:
+    mathjax: default
+---
+
+```{r, echo=FALSE}
+library(pander)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# EJERCICIO 2
+
+Propiedades de los estimadores:
+
+Propiedades de los estimadores La simulación ayuda a entender y validad las propiedades de los estimadores estadísticos como son, insesgadez, eficiencia y la consistencia principalmente. El siguiente problema permite evidenciar las principales características de un grupo de estimadores propuestos para la estimación de un parámetro asociado a un modelo de probabilidad.
+
+Sean X1, X2, X3 y X4, una muestra aleatoria de tamaño n=4 cuya población la conforma una distribución exponencial con parámetro θ desconocido. Determine las características de cada uno de los siguientes estimadores propuestos:
+
+
+$$
+\hat{\theta}_1 = \frac{X_1 + X_2}{6} + \frac{X_3 + X_4}{3}
+$$
+
+$$
+\hat{\theta}_2 = \frac{X_1 + 2X_2 + 3X_3 + 4X_4}{5}
+$$
+
+$$
+\hat{\theta}_3 = \frac{X_1 + X_2 + X_3 + X_4}{4}
+$$
+
+$$
+\hat{\theta}_4 = \frac{\min\{X_1, X_2, X_3, X_4\} + \max\{X_1, X_2, X_3, X_4\}}{2}
+$$
+
+
+# ANÁLISIS
+
+```{r, echo=FALSE}
+theta <- 2
+theta1 <- function(x) {
+  (x[1] + x[2])/6 + (x[3] + x[4])/3
+}
+
+theta2 <- function(x) {
+  (x[1] + 2*x[2] + 3*x[3] + 4*x[4])/5
+}
+
+theta3 <- function(x) {
+  (x[1] + x[2] + x[3] + x[4])/4
+}
+
+theta4 <- function(x) {
+  (min(x) + max(x))/2
+}
+calc_bias <- function(estimates, true_value) {
+  mean(estimates) - true_value
+}
+```
+
+```{r, echo=FALSE}
+set.seed(123)
+
+sample_sizes <- c(20, 50, 100, 1000)
+
+n_simulations <- 10000
+
+results <- list()
+
+for (n in sample_sizes) {
+  muestras <- replicate(n_simulations, rexp(n, rate = 1/theta))
+  estimadores <- apply(muestras, 2, function(x) {
+  c(theta1(x), theta2(x), theta3(x), theta4(x))
+    })
+  results[[as.character(n)]] <- data.frame(t(estimadores))
+  colnames(results[[as.character(n)]]) <- c("theta1", "theta2", "theta3", "theta4")
+}
+```
+
+```{r, echo=FALSE}
+sesgos <- matrix(nrow = length(sample_sizes), ncol = 4)
+colnames(sesgos) <- c("Theta 1", "Theta 2", "Theta 3", "Theta 4")
+row.names(sesgos) <- paste("n =", sample_sizes)
+
+for (idx in 1:length(sample_sizes)) {
+  n <- sample_sizes[idx]
+  for (i in 1:4) {
+    sesgos[idx, i] <- calc_bias(results[[as.character(n)]][,i], theta)
+  }
+}
+pander(sesgos, caption = "Tabla de Sesgos de los Estimadores para Diferentes Muestras")
+```
+
+```{r, echo=FALSE, fig.align='center'}
+for (n in sample_sizes) {
+  title <- paste("Boxplot para las", n, "muestras")
+  Encoding(title) <- "UTF-8"
+  boxplot(results[[as.character(n)]],
+          main = title,
+          names = c("Theta 1", "Theta 2", "Theta 3", "Theta 4"))
+  abline(h = 1/10, col = "red")
+  grid()
+}
+```
+
+
+# CONCLUSIONES
+
+1. Insesgadez:
+Theta 1 y Theta 3: Ambos estimadores presentan sesgos cercanos a 0 en todos los tamaños de muestra, lo que sugiere que son insesgados o al menos aproximadamente insesgados. La insesgadez es una propiedad crucial, ya que asegura que, en promedio, el estimador no sobreestima ni subestima el valor verdadero de θ. Esto los convierte en opciones confiables para la estimación de θ.
+Theta 2: Aunque el sesgo es consistente en torno a 2, lo que significa que siempre subestima θ, sigue siendo un estimador sesgado. Esto implica que, en promedio, no proporciona una estimación precisa del valor verdadero de θ.
+Theta 4: Muestra un sesgo creciente a medida que el tamaño de la muestra aumenta, lo que indica que también es un estimador sesgado, y su desempeño empeora con tamaños de muestra mayores. Este comportamiento lo hace inadecuado para estimar θ.
+
+2. Consistencia:
+Theta 1 y Theta 3: Ambos estimadores mantienen sesgos bajos y estables a medida que aumenta el tamaño de la muestra. Esto indica que son consistentes: a medida que crece el tamaño de la muestra, sus estimaciones se acercan al valor verdadero de θ. La consistencia es una propiedad fundamental, ya que asegura que con más datos, el estimador proporcionará una mejor aproximación al parámetro.
+Theta 2: Aunque su sesgo no cambia mucho con el tamaño de la muestra, la falta de reducción del sesgo sugiere que Theta 2 no es consistente. Incluso con grandes muestras, este estimador no proporciona estimaciones precisas de θ.
+Theta 4: Dado que el sesgo de Theta 4 aumenta con el tamaño de la muestra, no es consistente. Un estimador consistente debería mejorar con más datos, no empeorar.
+
+3. Eficiencia:
+La eficiencia de un estimador se refiere a su varianza. Aunque no tenemos directamente la varianza en estos resultados, los sesgos bajos y consistentes de Theta 1 y Theta 3 sugieren que probablemente sean más eficientes que Theta 2 y Theta 4, cuyos sesgos más grandes indican ineficiencia.
+Theta 2 y Theta 4 no solo son sesgados, sino que su sesgo no mejora significativamente con muestras más grandes, lo que también implica que no son eficientes.

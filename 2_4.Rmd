@@ -1,0 +1,117 @@
+---
+title: "Actividad 2 Ejercicio 4"
+author: "CARIS ANDREA CHIA AMAYA - WEIMAR CORTES"
+date: "2024-09-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+```
+
+```{r, echo=FALSE}
+library(ggplot2)
+```
+
+
+
+# EJERCICIO
+
+ESTIMACIÓN BOOTSTRAP
+<br>
+Suponga que coloca los valores de la muestra en una caja y extrae uno al azar. Este correspondería al primer valor de la muestra bootstrap \(X^*_1\). Después de anotado el valor, se regresa \(X^*_1\) a la caja y se extrae el valor \(X^*_2\), regresándolo nuevamente. Este procedimiento se repite hasta completar una muestra de tamaño \(n\), \(X^*_1, X^*_2, \dots, X^*_n\), conformando la muestra bootstrap.
+
+Es necesario extraer un gran número de muestras (suponga \(k = 1000\)). Para cada una de las muestras bootstrap obtenidas se calcula la media \(\overline{X^*_i}\), obteniéndose un valor para cada muestra. El intervalo de confianza queda conformado por los percentiles \(P_{2.5}\) y \(P_{97.5}\). Existen dos métodos para estimarlo:
+
+### Método 1
+\[
+(P_{2.5}; P_{97.5})
+\]
+
+### Método 2
+\[
+(2\overline{X} - P_{97.5}; 2\overline{X} - P_{2.5})
+\]
+
+Construya el intervalo de confianza por los dos métodos y compare los resultados obtenidos. Comente los resultados. ¿Confiaría en estas estimaciones?
+
+# ANÁLISIS
+
+```{r, echo=FALSE}
+n <-1000
+set.seed(123)
+
+muestra_original <- rnorm(n, mean = 7, sd = 2)
+
+k <- 1000
+
+bootstrap_media <- function(data, n) {
+  muestra_bootstrap <- sample(data, size = n, replace = TRUE)
+  return(mean(muestra_bootstrap))
+}
+
+medias_bootstrap <- replicate(k, bootstrap_media(muestra_original, n))
+
+p2.5 <- quantile(medias_bootstrap, 0.025)
+p97.5 <- quantile(medias_bootstrap, 0.975)
+
+media_original <- mean(muestra_original)
+
+IC_metodo_1 <- c(p2.5, p97.5)
+IC_metodo_2 <- c(2*media_original - p97.5, 2*media_original - p2.5)
+
+IC_metodo_1_text <- sprintf("(%.6f, %.6f)", IC_metodo_1[1], IC_metodo_1[2])
+IC_metodo_2_text <- sprintf("(%.6f, %.6f)", IC_metodo_2[1], IC_metodo_2[2])
+
+resultdos_df <- data.frame(
+  Método = c("Método 1", "Método 2"),
+  "Intervalo de Confianza" = c(IC_metodo_1_text, IC_metodo_2_text),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(resultdos_df, align = "c", col.names = c("Método", "Intervalo de Confianza"))
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+df <- data.frame(medias_bootstrap = medias_bootstrap)
+
+ggplot(df, aes(medias_bootstrap)) +
+  geom_histogram(binwidth = 0.01, color = "black", fill = "skyblue", alpha = 0.7) +
+  geom_vline(aes(xintercept = media_original), color = "red", linetype = "dashed", linewidth = 1) +
+  geom_vline(aes(xintercept = IC_metodo_1[1]), color = "blue", linetype = "solid", linewidth = 1) +
+  geom_vline(aes(xintercept = IC_metodo_1[2]), color = "blue", linetype = "solid", linewidth = 1) +
+  geom_vline(aes(xintercept = IC_metodo_2[1]), color = "green", linetype = "dotted", linewidth = 1) +
+  geom_vline(aes(xintercept = IC_metodo_2[2]), color = "green", linetype = "dotted", linewidth = 1) +
+  labs(title = "Distribución de las Medias Bootstrap con Intervalos de Confianza",
+       x = "Medias Bootstrap",
+       y = "Frecuencia") +
+  theme_minimal()
+
+```
+
+
+
+
+Comparación de Resultados
+
+Método 1: (6.908,7.155)
+
+Este intervalo se calcula directamente a partir de los percentiles 2.5 y 97.5 de las medias obtenidas de las muestras bootstrap.
+
+Método 2: (6.910,7.156)
+
+Este intervalo utiliza una fórmula que ajusta los percentiles mediante la media original, lo que intenta corregir cualquier posible sesgo.
+Comentarios sobre los Resultados
+Similitud: Los intervalos de confianza obtenidos por ambos métodos son casi idénticos, con diferencias mínimas en los límites inferior y superior (alrededor de 0.002 unidades). Esto indica que, en este caso, la estimación de la media es muy estable, y ambos métodos están proporcionando intervalos de confianza muy similares.
+
+Método 1: Dado que este método es directo y refleja los percentiles extremos de las medias bootstrap, su estrecha similitud con el Método 2 sugiere que la distribución de las medias bootstrap es simétrica y no presenta sesgo significativo.
+
+Método 2: Aunque introduce un ajuste basado en la media original para corregir posibles sesgos, el hecho de que el intervalo obtenido sea casi idéntico al del Método 1 sugiere que este ajuste no era necesario en este caso, ya que la distribución de las medias bootstrap es simétrica.
+
+# CONCLUSIÓN
+¿Confiaría en estas estimaciones?
+<br>
+Sí, confiaría en estas estimaciones. La cercanía extrema entre los intervalos de confianza obtenidos por los dos métodos refuerza la fiabilidad de la estimación de la media de la población. Esta similitud indica que no hay un sesgo significativo en las muestras bootstrap y que la distribución es simétrica, lo que hace que ambos métodos sean igualmente válidos en este contexto. Estos resultados sugieren que las estimaciones proporcionadas por el bootstrap son estables y confiables, y que cualquiera de los dos métodos puede ser utilizado con confianza para interpretar la media de la población.
+<br>
+<br>
+

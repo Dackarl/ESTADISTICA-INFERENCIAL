@@ -1,0 +1,357 @@
+---
+title: "Actividad 2 Ejercicio 1"
+author: "CARIS ANDREA CHIA AMAYA - WEIMAR CORTES"
+date: "2024-08-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(kableExtra)
+library(magrittr)
+library(knitr)
+library(pander)
+library(DT)
+library(flextable)
+library(formattable)
+```
+# EJERCICIO 1
+
+Estimación del valor de π
+La siguiente figura sugiere como estimar el valor de π con una simulación. En la figura, un círcuito con un área igual a π/4, está inscrito en un cuadrado cuya área es igual a 1. Se elige de forma aleatoria n puntos dentro del cuadrado . La probabilidad de que un punto esté dentro del círculo es igual a la fracción del área del cuadrado que abarca a éste, la cual es π/4. Por tanto, se puede estimar el valor de π/4 al contar el número de puntos dentro del círculo, para obtener la estimación de π/4. De este último resultado se encontrar una aproximación para el valor de π.
+
+```{r fig.cap="Figura", fig.align="center", fig.width=6, fig.height=6, echo=FALSE}
+plot(0,0, type = "n", xlim = c(0,1), ylim = c(0,1),
+     xlab = "Eje X", ylab = "Eje Y", asp = 1,
+     main = "Círculo Inscrito en un Cuadrado")
+symbols(0.5,0.5, circles = 0.5, add = TRUE, inches = FALSE, lwd = 2, col = "blue")
+```
+
+
+# ANÁLISIS
+
+```{r, echo=FALSE, results='asis', fig.align='center'}
+# Número de puntos a generar
+n <- 100  # Establecer un valor inicial grande
+
+# Generar n coordenadas x y y utilizando la distribución uniforme
+x <- runif(n, min = 0, max = 1)
+y <- runif(n, min = 0, max = 1)
+
+# Calcular la distancia al cuadrado desde el centro (0.5, 0.5)
+distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+
+# Determinar cuántos puntos están dentro del círculo (distancia al cuadrado < 0.25)
+dentro_del_circulo <- distancia_cuadrada < 0.25
+num_dentro_del_circulo <- sum(dentro_del_circulo)
+
+# Estimar π
+pi_estimado <- 4 * num_dentro_del_circulo / n
+
+# Graficar los puntos y el círculo
+plot(x, y, col = ifelse(dentro_del_circulo, "#164C51", "#701c00"), asp = 1, main = "Estimación de π usando Monte Carlo (100)")
+symbols(0.5, 0.5, circles = 0.5, add = TRUE, inches = FALSE)
+```
+
+```{r, echo=FALSE, results='asis'}
+# Calcular y mostrar el error
+pi_real <- pi  # Valor verdadero de π
+error_absoluto <- abs(pi_estimado - pi_real)
+error_relativo <- error_absoluto / pi_real
+
+# Crear el data.frame con nombres de columna sin caracteres especiales
+resultados_df <- data.frame(
+  'Puntos Dentro Circulo' = num_dentro_del_circulo,
+  'Estimacion de Pi' = round(pi_estimado, 6),
+  'Error Absoluto' = round(error_absoluto, 6),
+  'Error Relativo' = round(error_relativo, 6)
+)
+
+# Crear la tabla con flextable
+pander(resultados_df, caption = "Resultados de la Estimación de π con 100 datos", digits = 6, split.tables = Inf)
+```
+
+```{r, echo=FALSE, results='asis', fig.align='center'}
+# Número de puntos a generar
+n <- 1000  # Establecer un valor inicial grande
+
+# Generar n coordenadas x y y utilizando la distribución uniforme
+x <- runif(n, min = 0, max = 1)
+y <- runif(n, min = 0, max = 1)
+
+# Calcular la distancia al cuadrado desde el centro (0.5, 0.5)
+distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+
+# Determinar cuántos puntos están dentro del círculo (distancia al cuadrado < 0.25)
+dentro_del_circulo <- distancia_cuadrada < 0.25
+num_dentro_del_circulo <- sum(dentro_del_circulo)
+
+# Estimar π
+pi_estimado <- 4 * num_dentro_del_circulo / n
+
+# Graficar los puntos y el círculo
+plot(x, y, col = ifelse(dentro_del_circulo, "#164C51", "#701c00"), asp = 1, main = "Estimación de π usando Monte Carlo (1000)")
+symbols(0.5, 0.5, circles = 0.5, add = TRUE, inches = FALSE)
+```
+
+```{r, echo=FALSE, results='asis'}
+# Calcular y mostrar el error
+pi_real <- pi  # Valor verdadero de π
+error_absoluto <- abs(pi_estimado - pi_real)
+error_relativo <- error_absoluto / pi_real
+
+# Crear el data.frame con nombres de columna sin caracteres especiales
+resultados_df <- data.frame(
+  'Puntos Dentro Circulo' = num_dentro_del_circulo,
+  'Estimacion de Pi' = round(pi_estimado, 6),
+  'Error Absoluto' = round(error_absoluto, 6),
+  'Error Relativo' = round(error_relativo, 6)
+)
+
+# Crear la tabla con flextable
+pander(resultados_df, caption = "Resultados de la Estimación de π con 1000 datos", digits = 6, split.tables = Inf)
+```
+
+```{r, echo=FALSE, results='asis', fig.align='center'}
+# Número de puntos a generar
+n <- 10000  # Establecer un valor inicial grande
+
+# Generar n coordenadas x y y utilizando la distribución uniforme
+x <- runif(n, min = 0, max = 1)
+y <- runif(n, min = 0, max = 1)
+
+# Calcular la distancia al cuadrado desde el centro (0.5, 0.5)
+distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+
+# Determinar cuántos puntos están dentro del círculo (distancia al cuadrado < 0.25)
+dentro_del_circulo <- distancia_cuadrada < 0.25
+num_dentro_del_circulo <- sum(dentro_del_circulo)
+
+# Estimar π
+pi_estimado <- 4 * num_dentro_del_circulo / n
+
+# Graficar los puntos y el círculo
+plot(x, y, col = ifelse(dentro_del_circulo, "#164C51", "#701c00"), asp = 1, main = "Estimación de π usando Monte Carlo (10000)")
+symbols(0.5, 0.5, circles = 0.5, add = TRUE, inches = FALSE)
+```
+
+```{r, echo=FALSE, results='asis'}
+# Calcular y mostrar el error
+pi_real <- pi  # Valor verdadero de π
+error_absoluto <- abs(pi_estimado - pi_real)
+error_relativo <- error_absoluto / pi_real
+
+# Crear el data.frame con nombres de columna sin caracteres especiales
+resultados_df <- data.frame(
+  'Puntos Dentro Circulo' = num_dentro_del_circulo,
+  'Estimacion de Pi' = round(pi_estimado, 6),
+  'Error Absoluto' = round(error_absoluto, 6),
+  'Error Relativo' = round(error_relativo, 6)
+)
+
+# Crear la tabla con flextable
+pander(resultados_df, caption = "Resultados de la Estimación de π con 10.000 datos", digits = 6, split.tables = Inf)
+```
+
+```{r, echo=FALSE, results='asis', fig.align='center'}
+# Número de puntos a generar
+n <- 100000  # Establecer un valor inicial grande
+
+# Generar n coordenadas x y y utilizando la distribución uniforme
+x <- runif(n, min = 0, max = 1)
+y <- runif(n, min = 0, max = 1)
+
+# Calcular la distancia al cuadrado desde el centro (0.5, 0.5)
+distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+
+# Determinar cuántos puntos están dentro del círculo (distancia al cuadrado < 0.25)
+dentro_del_circulo <- distancia_cuadrada < 0.25
+num_dentro_del_circulo <- sum(dentro_del_circulo)
+
+# Estimar π
+pi_estimado <- 4 * num_dentro_del_circulo / n
+
+# Graficar los puntos y el círculo
+plot(x, y, col = ifelse(dentro_del_circulo, "#164C51", "#701c00"), asp = 1, main = "Estimación de π usando Monte Carlo (100000)")
+symbols(0.5, 0.5, circles = 0.5, add = TRUE, inches = FALSE)
+```
+
+```{r, echo=FALSE, results='asis'}
+# Calcular y mostrar el error
+pi_real <- pi  # Valor verdadero de π
+error_absoluto <- abs(pi_estimado - pi_real)
+error_relativo <- error_absoluto / pi_real
+
+# Crear el data.frame con nombres de columna sin caracteres especiales
+resultados_df <- data.frame(
+  'Puntos Dentro Circulo' = num_dentro_del_circulo,
+  'Estimacion de Pi' = round(pi_estimado, 6),
+  'Error Absoluto' = round(error_absoluto, 6),
+  'Error Relativo' = round(error_relativo, 6)
+)
+
+# Crear la tabla con flextable
+pander(resultados_df, caption = "Resultados de la Estimación de π con 100.000 datos", digits = 6, split.tables = Inf)
+```
+
+```{r, echo=FALSE, results='asis', fig.align='center'}
+# Número de puntos a generar
+n <- 1000000  # Establecer un valor inicial grande
+
+# Generar n coordenadas x y y utilizando la distribución uniforme
+x <- runif(n, min = 0, max = 1)
+y <- runif(n, min = 0, max = 1)
+
+# Calcular la distancia al cuadrado desde el centro (0.5, 0.5)
+distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+
+# Determinar cuántos puntos están dentro del círculo (distancia al cuadrado < 0.25)
+dentro_del_circulo <- distancia_cuadrada < 0.25
+num_dentro_del_circulo <- sum(dentro_del_circulo)
+
+# Estimar π
+pi_estimado <- 4 * num_dentro_del_circulo / n
+
+# Graficar los puntos y el círculo
+plot(x, y, col = ifelse(dentro_del_circulo, "#164C51", "#701c00"), asp = 1, main = "Estimación de π usando Monte Carlo (1000000)")
+symbols(0.5, 0.5, circles = 0.5, add = TRUE, inches = FALSE)
+```
+
+```{r, echo=FALSE, results='asis'}
+# Calcular y mostrar el error
+pi_real <- pi  # Valor verdadero de π
+error_absoluto <- abs(pi_estimado - pi_real)
+error_relativo <- error_absoluto / pi_real
+
+# Crear el data.frame con nombres de columna sin caracteres especiales
+resultados_df <- data.frame(
+  'Puntos Dentro Circulo' = num_dentro_del_circulo,
+  'Estimacion de Pi' = round(pi_estimado, 6),
+  'Error Absoluto' = round(error_absoluto, 6),
+  'Error Relativo' = round(error_relativo, 6)
+)
+
+# Crear la tabla con flextable
+pander(resultados_df, caption = "Resultados de la Estimación de π con 1'000.000 datos", digits = 6, split.tables = Inf)
+```
+# RESULTADOS
+
+Se procede a analizar las tendencias de las muestras en una tabla, para observar cómo, a medida que se incrementa el tamaño de las muestras, la estimación se aproxima cada vez más a π.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+options(scipen = 999)
+
+# Función para estimar π
+estimacion_pi <- function(n) {
+  x <- runif(n, min = 0, max = 1)
+  y <- runif(n, min = 0, max = 1)
+  distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+  dentro_del_circulo <- distancia_cuadrada < 0.25
+  num_dentro_del_circulo <- sum(dentro_del_circulo)
+  pi_estimado <- 4 * num_dentro_del_circulo / n
+  pi_real <- pi
+  error_absoluto <- abs(pi_estimado - pi_real)
+  return(c(pi_estimado, error_absoluto))
+}
+
+# Tamaños de muestra
+tamanos_muestra <- c(100, 1000, 10000, 100000, 1000000)
+
+# Obtén los resultados
+resultados <- sapply(tamanos_muestra, function(n) estimacion_pi(n))
+
+# Crea el dataframe con los resultados redondeados
+resultados_df <- data.frame(
+  'Tamaño muestra' = tamanos_muestra,
+  'Estimacion pi' = round(resultados[1, ], 4),
+  'Error absoluto' = round(resultados[2, ], 4)
+)
+
+kable(resultados_df, col.names = c("Tamaño de Muestra", "Estimación de π", "Error Absoluto"),
+      digits = 6, align = "c", format = "pandoc")
+```
+
+Se observa una ligera desviación en la estimación en comparación con el tamaño de muestra anterior, está desviación varia entre las muestras, lo cual puede ser atribuido a la fluctuación inherente en la estimación con muestras grandes. A medida que el tamaño de la muestra aumenta, la estimación de π tiende a acercarse más al valor verdadero de π, reduciendo el error absoluto. Aunque la tendencia general muestra una mejora en la estimación con el aumento del tamaño de la muestra, se observa una ligera fluctuación en el error absoluto entre tamaños de muestra grandes (por ejemplo, entre 10,000 y 100,000), lo cual puede deberse a la variabilidad inherente en la simulación y no necesariamente a un problema en el método. Por lo tanto, se procede a revisar los datos para identificar el número de muestras requerido para minimizar el error absoluto a su mínima expresión.
+
+```{r echo=FALSE, fig.align='center', message=FALSE, warning=FALSE, results='asis'}
+# Número de simulaciones
+n_sim <- seq(100000, 1000000, by = 10000)
+
+# Almacenar resultados
+pi_estimados <- numeric(length(n_sim))
+errores_absolutos <- numeric(length(n_sim))
+
+# Realizar las simulaciones y calcular pi y el error
+for (i in 1:length(n_sim)) {
+  n <- n_sim[i]
+  x <- runif(n, min = 0, max = 1)
+  y <- runif(n, min = 0, max = 1)
+  distancia_cuadrada <- (x - 0.5)^2 + (y - 0.5)^2
+  dentro_del_circulo <- distancia_cuadrada < 0.25
+  num_dentro_del_circulo <- sum(dentro_del_circulo)
+  pi_estimado <- 4 * num_dentro_del_circulo / n
+  pi_estimados[i] <- pi_estimado
+  errores_absolutos[i] <- abs(pi_estimado - pi)
+}
+
+# Identificar los puntos donde el error absoluto es muy cercano a 0
+puntos_cercanos <- which(abs(errores_absolutos) < 1e-4)  # Ajustar el umbral si es necesario
+
+# Graficar la estimación de pi
+plot(n_sim, pi_estimados, type = "l", col = "#1f77b4", lwd = 2,
+     xlab = "Tamaño de la Muestra", ylab = "Estimación de π / Error",
+     main = "Estimación de π y Error Absoluto")
+
+# Agregar la línea de π real
+abline(h = pi, col = "#ff7f0e", lty = 2)
+
+# Agregar la línea del error absoluto
+lines(n_sim, errores_absolutos, col = "#2ca02c", lwd = 2)
+
+# Marcar los puntos donde la estimación de pi coincide con pi real
+points(n_sim[puntos_cercanos], pi_estimados[puntos_cercanos], col = "#d62728", pch = 19, cex = 1.5)
+points(n_sim[puntos_cercanos], errores_absolutos[puntos_cercanos], col = "#d62728", pch = 19, cex = 1.5)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Crear un dataframe con los puntos donde el error absoluto es cercano a 0
+resultados_puntos_cercanos <- data.frame(
+  Tamano_muestra = n_sim[puntos_cercanos],
+  Estimacion_pi = pi_estimados[puntos_cercanos],
+  Error_absoluto = errores_absolutos[puntos_cercanos]
+)
+
+# Si desea visualizar la tabla de manera más ordenada en RMarkdown:
+kable(resultados_puntos_cercanos, col.names = c("Tamaño de Muestra", "Estimación de π", "Error Absoluto"),
+      caption = "Puntos donde la Estimación de π Coincide con el Valor Real", digits = 6, align = "c")
+
+```
+# CONCLUSIÓN
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Parámetros
+epsilon <- 0.00001 # Error deseado
+confidence_level <- 0.99 # Nivel de confianza (95%)
+z_value <- qnorm((1 + confidence_level) / 2) # Valor Z para el nivel de confianza
+
+# Estimación del número de muestras necesarias
+# Fórmula aproximada: n = (z^2 * (pi_estimate * (1 - pi_estimate))) / epsilon^2
+# Nota: pi_estimate es la estimación de pi obtenida previamente, asumiendo pi_estimate ≈ 0.5 para máxima variabilidad
+
+pi_estimate <- 0.5 # Valor aproximado para pi
+n <- (z_value^2 * (pi_estimate * (1 - pi_estimate))) / epsilon^2
+
+# Redondear al entero más cercano
+n <- ceiling(n)
+
+n_formatted <- formatC(n, format = "f", big.mark = ",", digits = 0)
+
+# Mostrar el resultado
+cat("El número estimado de muestras necesarias es:", n_formatted, "\n")
+```
+
+Este número se tiene en cuenta con una nivel de confianza de 99%, y con un error deseado de 0.00001.
